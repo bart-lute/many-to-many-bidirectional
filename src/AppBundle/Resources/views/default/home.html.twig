@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}H O M E{% endblock %}
+
+{% block body %}
+    <div>
+        <a href="{{ path('article_new') }}">New Article</a>
+    </div>
+    <div id="tableArticles">
+        {% if articles %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>title</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for article in articles %}
+                        <tr>
+                            <td>{{ article.id }}</td>
+                            <td>
+                                <a href="{{ path('article_edit', { 'id': article.id }) }}">{{ article.title }}</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+    <hr/>
+    <div>
+        <a href="{{ path('tag_new') }}">New Tag</a>
+    </div>
+    <div id="tableTags">
+        {% if tags %}
+            <table>
+                <thead>
+                <tr>
+                    <th>id</th>
+                    <th>name</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for tag in tags %}
+                        <tr>
+                            <td>{{ tag.id }}</td>
+                            <td>
+                                <a href="{{ path('tag_edit', { 'id': tag.id }) }}">{{ tag.name }}</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+{% endblock %}

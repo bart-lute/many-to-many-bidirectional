@@ -17,9 +17,19 @@ class DefaultController extends Controller
      */
     public function indexAction(Request $request)
     {
-        // replace this example code with whatever you need
-        return $this->render('default/index.html.twig', array(
-            'base_dir' => realpath($this->container->getParameter('kernel.root_dir').'/..').DIRECTORY_SEPARATOR,
+        $articles = $this
+            ->getDoctrine()
+            ->getRepository('AppBundle:Article')
+            ->findBy(array(), array('title' => 'ASC'));
+
+        $tags = $this
+            ->getDoctrine()
+            ->getRepository('AppBundle:Tag')
+            ->findBy(array(), array('name' => 'ASC'));
+
+        return $this->render('@App/default/home.html.twig', array(
+            'articles' => $articles,
+            'tags' => $tags,
         ));
     }
 
@@ -47,7 +57,44 @@ class DefaultController extends Controller
 
         }
 
-        return $this->render('@App/default/new.article.html.twig', array(
+        return $this->render('@App/default/article.html.twig', array(
+            'form' => $form->createView(),
+        ));
+    }
+
+    /**
+     * @param Request $request
+     * @param $id
+     * @Route("/article/edit/{id}", name="article_edit")
+     */
+    public function editArticleAction(Request $request, $id)
+    {
+        $article = $this
+            ->getDoctrine()
+            ->getRepository('AppBundle:Article')
+            ->find($id);
+
+        if (!$article) {
+            throw $this->createNotFoundException(
+                'No Article found with id ' . $id
+            );
+        }
+
+        $form = $this->createForm(new ArticleType(), $article);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $article = $form->getData();
+
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($article);
+            $em->flush();
+
+            return $this->redirectToRoute('homepage');
+        }
+
+        return $this->render('@App/default/article.html.twig', array(
             'form' => $form->createView(),
         ));
     }
@@ -77,9 +124,60 @@ class DefaultController extends Controller
             return $this->redirectToRoute('homepage');
         }
 
-        return $this->render('@App/default/new.tag.html.twig', array(
+        return $this->render('@App/default/tag.html.twig', array(
             'form' => $form->createView(),
         ));
+    }
+
+    /**
+     * @param Request $request
+     * @param $id
+     * @Route("/tag/edit/{id}", name="tag_edit")
+     */
+    public function editTagAction(Request $request, $id)
+    {
+        /**
+         * @var Tag $tag
+         */
+        $tag = $this
+            ->getDoctrine()
+            ->getRepository('AppBundle:Tag')
+            ->find($id);
+
+        echo 'articles: ' . count($tag->getArticles());
+
+        if (!$tag) {
+            throw $this->createNotFoundException(
+                'No Tag found with id ' . $id
+            );
+        }
+
+        $form = $this->createForm(new TagType(), $tag);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $tag = $form->getData();
+
+            /**
+             * @var Article $article
+             */
+            foreach ($tag->getArticles() as $article) {
+                $article->addTag($tag);
+            }
+
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($tag);
+            $em->flush();
+
+            return $this->redirectToRoute('homepage');
+        }
+
+        return $this->render('@App/default/tag.html.twig', array(
+            'form' => $form->createView(),
+        ));
+
     }
 
 
