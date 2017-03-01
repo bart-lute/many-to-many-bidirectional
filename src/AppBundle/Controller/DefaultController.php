@@ -114,10 +114,6 @@ class DefaultController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
             $tag = $form->getData();
 
-            foreach ($tag->getArticles() as $article) {
-                $article->addTag($tag);
-            }
-
             $em = $this->getDoctrine()->getManager();
             $em->persist($tag);
             $em->flush();
@@ -145,8 +141,6 @@ class DefaultController extends Controller
             ->getRepository('AppBundle:Tag')
             ->find($id);
 
-        $tag->saveArticles();
-
         if (!$tag) {
             throw $this->createNotFoundException(
                 'No Tag found with id ' . $id
@@ -160,11 +154,7 @@ class DefaultController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
 
             $tag = $form->getData();
-
             $tag->resetArticles();
-            foreach ($tag->getArticles() as $article) {
-                $article->addTag($tag);
-            }
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($tag);

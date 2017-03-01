@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @ORM\Table()
  * @ORM\Entity
+ * @ORM\HasLifecycleCallbacks()
  */
 class Tag
 {
@@ -34,12 +35,12 @@ class Tag
      */
     private $articles;
 
-    private $savedArticles;
+    private $backedupArticles;
 
     public function __construct()
     {
         $this->articles = new ArrayCollection();
-        $this->savedArticles = new ArrayCollection();
+        $this->backedupArticles = new ArrayCollection();
     }
 
     public function __toString()
@@ -47,20 +48,38 @@ class Tag
         return $this->name;
     }
 
-    public function saveArticles()
+    /**
+     * @ORM\PostLoad
+     */
+    public function backupArticles()
     {
         foreach ($this->articles as $article) {
-            $this->savedArticles[] = $article;
+            $this->backedupArticles[] = $article;
         }
     }
 
+    /**
+     * @ORM\PrePersist
+     */
     public function resetArticles()
     {
         /**
-         * @var Article $savedArticle
+         * Remove previous relations
+         * @var Article $article
          */
-        foreach ($this->savedArticles as $savedArticle) {
-            $savedArticle->removeTag($this);
+        if (count($this->backedupArticles)) {
+            foreach ($this->backedupArticles as $article) {
+                $article->removeTag($this);
+            }
+        }
+
+        /*
+         * Add current ones
+         */
+        if (count($this->articles)) {
+            foreach ($this->articles as $article) {
+                $article->addTag($this);
+            }
         }
     }
 
