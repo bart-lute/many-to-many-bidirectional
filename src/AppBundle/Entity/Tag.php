@@ -34,14 +34,34 @@ class Tag
      */
     private $articles;
 
+    private $savedArticles;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+        $this->savedArticles = new ArrayCollection();
     }
 
     public function __toString()
     {
         return $this->name;
+    }
+
+    public function saveArticles()
+    {
+        foreach ($this->articles as $article) {
+            $this->savedArticles[] = $article;
+        }
+    }
+
+    public function resetArticles()
+    {
+        /**
+         * @var Article $savedArticle
+         */
+        foreach ($this->savedArticles as $savedArticle) {
+            $savedArticle->removeTag($this);
+        }
     }
 
     /**
@@ -109,4 +129,5 @@ class Tag
     {
         return $this->articles;
     }
+
 }
